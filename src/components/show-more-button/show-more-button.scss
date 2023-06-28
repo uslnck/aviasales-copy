@@ -1,0 +1,13 @@
+@import "../../main.scss";
+
+.more-tickets {
+  height: 50px;
+  background-color: $primary-color;
+  border-radius: $border-radius;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.5px;
+  margin-bottom: 50px;
+}
