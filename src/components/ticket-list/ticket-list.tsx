@@ -73,6 +73,7 @@ function TicketList() {
     twoTransfersChecked,
     threeTransfersChecked,
     selectedFilter,
+    tickets,
   ]);
 
   return (
