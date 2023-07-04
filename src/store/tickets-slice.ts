@@ -4,11 +4,13 @@ import { ITicketsSliceState } from "../types";
 const initialState: ITicketsSliceState = {
   searchId: [],
   tickets: [],
+  processedTickets: [],
   searchIdError: null,
   ticketsError: null,
   displayCount: 5,
   fetchTicketsStatus: "",
   searchIdStatus: "",
+  searchCompleted: false,
 };
 
 export const fetchSearchId = createAsyncThunk(
@@ -23,9 +25,8 @@ export const fetchSearchId = createAsyncThunk(
       }
       const body = await response.json();
       console.log(body);
-      return body.searchId;
+      return [body.searchId];
     } catch (error) {
-      console.log("Couldn't fetch searchId");
       return rejectWithValue((error as Error).message);
     }
   }
@@ -45,7 +46,7 @@ export const fetchTickets = createAsyncThunk(
       }
       const body = await response.json();
       console.log(body);
-      return body.tickets;
+      return [body.tickets, body.stop];
     } catch (error) {
       return rejectWithValue((error as Error).message);
     }
@@ -58,6 +59,57 @@ const ticketsSlice = createSlice({
   reducers: {
     increaseDisplayCount: (state) => {
       state.displayCount = state.displayCount + 5;
+    },
+    filterTickets: (state, action) => {
+      const {
+        zeroTransfersChecked,
+        oneTransferChecked,
+        twoTransfersChecked,
+        threeTransfersChecked,
+      } = action.payload;
+
+      if (
+        zeroTransfersChecked ||
+        oneTransferChecked ||
+        twoTransfersChecked ||
+        threeTransfersChecked
+      ) {
+        const transferCount = zeroTransfersChecked
+          ? 0
+          : oneTransferChecked
+          ? 1
+          : twoTransfersChecked
+          ? 2
+          : 3;
+
+        state.processedTickets = state.tickets.filter(
+          (t) =>
+            t.segments[0].stops.length === transferCount ||
+            t.segments[1].stops.length === transferCount
+        );
+      }
+    },
+    organizeTickets: (state, action) => {
+      const { selectedFilter } = action.payload;
+
+      switch (selectedFilter) {
+        case "cheapest":
+          state.processedTickets = state.tickets.sort(
+            (a, b) => a.price - b.price
+          );
+          break;
+        case "fastest":
+          state.processedTickets = state.tickets.sort(
+            (a, b) =>
+              a.segments[0].duration +
+              a.segments[1].duration -
+              (b.segments[0].duration + b.segments[1].duration)
+          );
+          break;
+        default:
+          state.processedTickets = state.tickets;
+          break;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -83,11 +135,14 @@ const ticketsSlice = createSlice({
           state[errorKey] = null;
         })
         .addCase(action.fulfilled, (state: ITicketsSliceState, action) => {
+          if (payloadKey === "tickets") {
+            state.searchCompleted = action.payload[1];
+            state.processedTickets = state.processedTickets.concat(
+              action.payload[0]
+            );
+          }
           state[statusKey] = "resolved";
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          state[payloadKey] = (state[payloadKey] as any[]).concat(
-            action.payload
-          );
+          state[payloadKey] = state[payloadKey].concat(action.payload[0]);
           state[errorKey] = null;
         })
         .addCase(action.rejected, (state: ITicketsSliceState, action) => {
@@ -99,5 +154,7 @@ const ticketsSlice = createSlice({
   },
 });
 
-export const { increaseDisplayCount } = ticketsSlice.actions;
+export const { increaseDisplayCount, filterTickets, organizeTickets } =
+  ticketsSlice.actions;
+
 export default ticketsSlice.reducer;

@@ -5,6 +5,7 @@ import {
 } from "../../store/checkboxes-slice";
 import "./tranfers.scss";
 import { RootState } from "../../store";
+import { checkboxes } from "../../mock/transfer-checkboxes";
 
 function Transfers() {
   const {
@@ -17,13 +18,11 @@ function Transfers() {
 
   const dispatch = useDispatch();
 
-  const checkboxes = [
-    { id: 0, label: "Все", checked: allTransfersChecked },
-    { id: 1, label: "Без пересадок", checked: zeroTransfersChecked },
-    { id: 2, label: "1 пересадка", checked: oneTransferChecked },
-    { id: 3, label: "2 пересадки", checked: twoTransfersChecked },
-    { id: 4, label: "3 пересадки", checked: threeTransfersChecked },
-  ];
+  checkboxes[0].checked = allTransfersChecked;
+  checkboxes[1].checked = zeroTransfersChecked;
+  checkboxes[2].checked = oneTransferChecked;
+  checkboxes[3].checked = twoTransfersChecked;
+  checkboxes[4].checked = threeTransfersChecked;
 
   const handleClick = (checkboxId: number) => {
     if (checkboxId === 0) dispatch(toggleAllTransfers());
