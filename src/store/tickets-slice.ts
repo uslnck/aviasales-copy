@@ -87,7 +87,6 @@ const ticketsSlice = createSlice({
           );
           break;
         default:
-          state.processedTickets = state.tickets;
           break;
       }
     },
