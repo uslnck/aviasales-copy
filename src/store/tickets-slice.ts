@@ -61,45 +61,25 @@ const ticketsSlice = createSlice({
       state.displayCount = state.displayCount + 5;
     },
     filterTickets: (state, action) => {
-      const {
-        zeroTransfersChecked,
-        oneTransferChecked,
-        twoTransfersChecked,
-        threeTransfersChecked,
-      } = action.payload;
+      const { transferCount, allTransfersChecked } = action.payload;
 
-      if (
-        zeroTransfersChecked ||
-        oneTransferChecked ||
-        twoTransfersChecked ||
-        threeTransfersChecked
-      ) {
-        const transferCount = zeroTransfersChecked
-          ? 0
-          : oneTransferChecked
-          ? 1
-          : twoTransfersChecked
-          ? 2
-          : 3;
-
+      if (allTransfersChecked) state.processedTickets = state.tickets;
+      else
         state.processedTickets = state.tickets.filter(
           (t) =>
             t.segments[0].stops.length === transferCount ||
             t.segments[1].stops.length === transferCount
         );
-      }
     },
     organizeTickets: (state, action) => {
       const { selectedFilter } = action.payload;
 
       switch (selectedFilter) {
         case "cheapest":
-          state.processedTickets = state.tickets.sort(
-            (a, b) => a.price - b.price
-          );
+          state.processedTickets.sort((a, b) => a.price - b.price);
           break;
         case "fastest":
-          state.processedTickets = state.tickets.sort(
+          state.processedTickets.sort(
             (a, b) =>
               a.segments[0].duration +
               a.segments[1].duration -

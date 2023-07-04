@@ -3,7 +3,7 @@ import ShowMoreButton from "../show-more-button";
 import Ticket from "../ticket";
 import NoTicketsFound from "../no-tickets-found";
 import "./ticket-list.scss";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { fetchSearchId, fetchTickets } from "../../store/tickets-slice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
@@ -22,6 +22,7 @@ function TicketList() {
   } = useSelector((state: RootState) => state.tickets);
 
   const {
+    allTransfersChecked,
     zeroTransfersChecked,
     oneTransferChecked,
     twoTransfersChecked,
@@ -51,29 +52,51 @@ function TicketList() {
     }
   }, [dispatch, fetchTicketsStatus]);
 
+  const filtered = useRef(false);
+
   useEffect(() => {
-    dispatch(
-      organizeTickets({
-        selectedFilter,
-      })
-    );
+    const transferCount = zeroTransfersChecked
+      ? 0
+      : oneTransferChecked
+      ? 1
+      : twoTransfersChecked
+      ? 2
+      : 3;
 
     dispatch(
       filterTickets({
-        zeroTransfersChecked,
-        oneTransferChecked,
-        twoTransfersChecked,
-        threeTransfersChecked,
+        transferCount,
+        allTransfersChecked,
       })
     );
+
+    filtered.current = true;
   }, [
     dispatch,
+    tickets,
+    allTransfersChecked,
     zeroTransfersChecked,
     oneTransferChecked,
     twoTransfersChecked,
     threeTransfersChecked,
-    selectedFilter,
+  ]);
+
+  useEffect(() => {
+    if (filtered)
+      dispatch(
+        organizeTickets({
+          selectedFilter,
+        })
+      );
+  }, [
+    dispatch,
     tickets,
+    filtered,
+    selectedFilter,
+    zeroTransfersChecked,
+    oneTransferChecked,
+    twoTransfersChecked,
+    threeTransfersChecked,
   ]);
 
   return (
