@@ -1,5 +1,3 @@
-import Filters from "../filters";
-import ShowMoreButton from "../show-more-button";
 import Ticket from "../ticket";
 import NoTicketsFound from "../no-tickets-found";
 import "./ticket-list.scss";
@@ -100,32 +98,28 @@ function TicketList() {
   ]);
 
   return (
-    <div className="ticket-container">
-      <Filters />
-      <ul className="ticket-list">
-        {processedTickets.length === 0 ? (
-          <Spin size="large" />
-        ) : !zeroTransfersChecked &&
-          !oneTransferChecked &&
-          !twoTransfersChecked &&
-          !threeTransfersChecked ? (
-          <NoTicketsFound />
-        ) : (
-          processedTickets
-            .slice(0, displayCount)
-            .map((ticket, i) => (
-              <Ticket
-                key={i}
-                flightForth={ticket.segments[0]}
-                flightBack={ticket.segments[1]}
-                price={ticket.price}
-                carrier={ticket.carrier}
-              />
-            ))
-        )}
-      </ul>
-      <ShowMoreButton />
-    </div>
+    <ul className="ticket-list">
+      {processedTickets.length === 0 ? (
+        <Spin size="large" />
+      ) : !zeroTransfersChecked &&
+        !oneTransferChecked &&
+        !twoTransfersChecked &&
+        !threeTransfersChecked ? (
+        <NoTicketsFound />
+      ) : (
+        processedTickets
+          .slice(0, displayCount)
+          .map((ticket, i) => (
+            <Ticket
+              key={i}
+              flightForth={ticket.segments[0]}
+              flightBack={ticket.segments[1]}
+              price={ticket.price}
+              carrier={ticket.carrier}
+            />
+          ))
+      )}
+    </ul>
   );
 }
 

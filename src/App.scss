@@ -12,6 +12,13 @@ html {
   box-sizing: inherit;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  background-color: $background-color;
+}
+
 button {
   margin: 0;
   padding: 0;
@@ -19,13 +26,6 @@ button {
   border: none;
   cursor: pointer;
   color: inherit;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  min-width: 320px;
-  background-color: $background-color;
 }
 
 menu {
@@ -60,42 +60,4 @@ h3 {
   flex-direction: column;
   font-family: "Open Sans", sans-serif;
   color: $common-color;
-}
-
-header {
-  margin-top: 50px;
-  width: 100%;
-
-  .header-logo-container {
-    width: 82px;
-    height: 89px;
-    margin: 0 auto;
-    .background {
-      position: relative;
-      left: 50%;
-      transform: translate(-50%, 0);
-    }
-    .plane {
-      position: relative;
-      top: -50%;
-      left: 50%;
-      transform: translate(-50%, -69%);
-    }
-  }
-}
-
-main {
-  width: 100%;
-  margin-top: 30px;
-
-  .main-container {
-    display: flex;
-    gap: 20px;
-    // <Transfers />
-  }
-
-  // <TicketList />
-  //// <Filters />
-  //// <Ticket />
-  //// <ShowMoreButton />
 }
