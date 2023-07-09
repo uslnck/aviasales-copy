@@ -1,23 +1,18 @@
 import Ticket from "../ticket";
 import NoTicketsFound from "../no-tickets-found";
 import "./ticket-list.scss";
-import { useEffect, useRef } from "react";
-import { fetchSearchId, fetchTickets } from "../../store/tickets-slice";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store";
+import { useSelector } from "react-redux";
+import {
+  RootState,
+  useGetSearchIdQuery,
+  useGetTicketsQuery,
+} from "../../store";
 import { Spin } from "antd";
-import { filterTickets, organizeTickets } from "../../store/tickets-slice";
-// import { filterTickets, organizeTickets } from "@store/actions";
+import { useEffect, useMemo } from "react";
+import { ITicket } from "../../types";
 
 function TicketList() {
-  const {
-    searchId,
-    processedTickets,
-    tickets,
-    fetchTicketsStatus,
-    displayCount,
-    searchCompleted,
-  } = useSelector((state: RootState) => state.tickets);
+  const { displayCount } = useSelector((state: RootState) => state.tickets);
 
   const {
     allTransfersChecked,
@@ -29,85 +24,76 @@ function TicketList() {
 
   const { selectedFilter } = useSelector((state: RootState) => state.filters);
 
-  const dispatch = useDispatch();
+  const { data: searchIdObject = { searchId: "" } } = useGetSearchIdQuery();
+  const { searchId } = searchIdObject;
 
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dispatch(fetchSearchId() as any);
-  }, [dispatch]);
+  const {
+    data: ticketsObject = { tickets: [], stop: false },
+    isLoading,
+    refetch,
+  } = useGetTicketsQuery(searchId);
+  const { tickets, stop } = ticketsObject;
 
-  useEffect(() => {
-    if (searchId.length !== 0 && !searchCompleted) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dispatch(fetchTickets() as any);
-    }
-  }, [dispatch, searchId, searchCompleted, tickets]);
+  const newTickets = useMemo(() => {
+    const filterAndSort = (tickets: ITicket[]) => {
+      let mutableTickets = [...tickets];
 
-  useEffect(() => {
-    if (fetchTicketsStatus === "rejected") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dispatch(fetchTickets() as any);
-    }
-  }, [dispatch, fetchTicketsStatus]);
+      const transferCount = zeroTransfersChecked
+        ? 0
+        : oneTransferChecked
+        ? 1
+        : twoTransfersChecked
+        ? 2
+        : 3;
 
-  const filtered = useRef(false);
+      if (!allTransfersChecked)
+        mutableTickets = mutableTickets.filter(
+          (t) =>
+            t.segments[0].stops.length === transferCount ||
+            t.segments[1].stops.length === transferCount
+        );
 
-  useEffect(() => {
-    const transferCount = zeroTransfersChecked
-      ? 0
-      : oneTransferChecked
-      ? 1
-      : twoTransfersChecked
-      ? 2
-      : 3;
+      switch (selectedFilter) {
+        case "cheapest":
+          return mutableTickets.sort((a, b) => a.price - b.price);
+        case "fastest":
+          return mutableTickets.sort(
+            (a, b) =>
+              a.segments[0].duration +
+              a.segments[1].duration -
+              (b.segments[0].duration + b.segments[1].duration)
+          );
+        default:
+          return mutableTickets;
+      }
+    };
 
-    dispatch(
-      filterTickets({
-        transferCount,
-        allTransfersChecked,
-      })
-    );
-
-    filtered.current = true;
+    return filterAndSort(tickets);
   }, [
-    dispatch,
     tickets,
+    zeroTransfersChecked,
+    oneTransferChecked,
+    twoTransfersChecked,
     allTransfersChecked,
-    zeroTransfersChecked,
-    oneTransferChecked,
-    twoTransfersChecked,
-    threeTransfersChecked,
+    selectedFilter,
   ]);
 
   useEffect(() => {
-    if (filtered)
-      dispatch(
-        organizeTickets({
-          selectedFilter,
-        })
-      );
-  }, [
-    dispatch,
-    tickets,
-    filtered,
-    selectedFilter,
-    zeroTransfersChecked,
-    oneTransferChecked,
-    twoTransfersChecked,
-    threeTransfersChecked,
-  ]);
+    console.log(ticketsObject);
+    if (!stop) refetch();
+  }, [refetch, stop, ticketsObject]);
+
+  if (isLoading) return <Spin size="large" />;
 
   return (
     <ul className="ticket-list">
-      {processedTickets.length === 0 ? (
-        <Spin size="large" />
-      ) : !zeroTransfersChecked &&
-        !oneTransferChecked &&
-        !twoTransfersChecked &&
-        !threeTransfersChecked ? (
+      {!zeroTransfersChecked &&
+      !oneTransferChecked &&
+      !twoTransfersChecked &&
+      !threeTransfersChecked ? (
         <NoTicketsFound />
       ) : (
-        processedTickets
+        newTickets
           .slice(0, displayCount)
           .map((ticket, i) => (
             <Ticket

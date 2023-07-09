@@ -1,15 +1,5 @@
-import { configureStore } from "@reduxjs/toolkit";
-import checkboxesReducer from "./checkboxes-slice";
-import filtersReducer from "./filters-slice";
-import ticketsReducer from "./tickets-slice";
+import store from "./store";
 
-const store = configureStore({
-  reducer: {
-    checkboxes: checkboxesReducer,
-    filters: filtersReducer,
-    tickets: ticketsReducer,
-  },
-});
-
+export * from "./store";
+export * from "./search-api";
 export default store;
-export type RootState = ReturnType<typeof store.getState>;
