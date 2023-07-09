@@ -12,11 +12,11 @@ const store = configureStore({
     tickets: ticketsReducer,
     [searchApi.reducerPath]: searchApi.reducer,
   },
-  middleware: (getDefaultMiddlware) =>
-    getDefaultMiddlware().concat(searchApi.middleware),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(searchApi.middleware),
 });
 
 export default store;
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-export const useAppDispatch: () => AppDispatch = useDispatch;
+export const useAppDispatch = () => useDispatch<AppDispatch>();

@@ -1,8 +1,8 @@
 import Ticket from "../ticket";
 import NoTicketsFound from "../no-tickets-found";
 import "./ticket-list.scss";
-import { useSelector } from "react-redux";
-import {
+import { useDispatch, useSelector } from "react-redux";
+import store, {
   RootState,
   useGetSearchIdQuery,
   useGetTicketsQuery,
@@ -10,9 +10,15 @@ import {
 import { Spin } from "antd";
 import { useEffect, useMemo } from "react";
 import { ITicket } from "../../types";
+import { applyFilters } from "../../store/filters-slice";
+
+export type AppDispatch = typeof store.dispatch;
+
+export const useAppDispatch = () => useDispatch<AppDispatch>();
 
 function TicketList() {
   const { displayCount } = useSelector((state: RootState) => state.tickets);
+  const dispatch = useAppDispatch();
 
   const {
     allTransfersChecked,
@@ -34,42 +40,10 @@ function TicketList() {
   } = useGetTicketsQuery(searchId);
   const { tickets, stop } = ticketsObject;
 
-  const newTickets = useMemo(() => {
-    const filterAndSort = (tickets: ITicket[]) => {
-      let mutableTickets = [...tickets];
-
-      const transferCount = zeroTransfersChecked
-        ? 0
-        : oneTransferChecked
-        ? 1
-        : twoTransfersChecked
-        ? 2
-        : 3;
-
-      if (!allTransfersChecked)
-        mutableTickets = mutableTickets.filter(
-          (t) =>
-            t.segments[0].stops.length === transferCount ||
-            t.segments[1].stops.length === transferCount
-        );
-
-      switch (selectedFilter) {
-        case "cheapest":
-          return mutableTickets.sort((a, b) => a.price - b.price);
-        case "fastest":
-          return mutableTickets.sort(
-            (a, b) =>
-              a.segments[0].duration +
-              a.segments[1].duration -
-              (b.segments[0].duration + b.segments[1].duration)
-          );
-        default:
-          return mutableTickets;
-      }
-    };
-
-    return filterAndSort(tickets);
+  useEffect(() => {
+    dispatch(applyFilters(tickets));
   }, [
+    dispatch,
     tickets,
     zeroTransfersChecked,
     oneTransferChecked,
@@ -78,8 +52,9 @@ function TicketList() {
     selectedFilter,
   ]);
 
+  const { filteredTickets } = useSelector((store: RootState) => store.filters);
+
   useEffect(() => {
-    console.log(ticketsObject);
     if (!stop) refetch();
   }, [refetch, stop, ticketsObject]);
 
@@ -93,7 +68,7 @@ function TicketList() {
       !threeTransfersChecked ? (
         <NoTicketsFound />
       ) : (
-        newTickets
+        filteredTickets
           .slice(0, displayCount)
           .map((ticket, i) => (
             <Ticket
