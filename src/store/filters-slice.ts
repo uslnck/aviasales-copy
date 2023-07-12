@@ -1,7 +1,24 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { createSelector } from "reselect";
 import { RootState } from "../store";
 import { ITicket, IFiltersSliceState } from "../types";
+
+const initialState: IFiltersSliceState = {
+  selectedFilter: "cheapest",
+  filteredTickets: [],
+};
+
+const filtersSlice = createSlice({
+  name: "filters",
+  initialState,
+  reducers: {
+    setFilter: (state, action: PayloadAction<{ filter: string }>) => {
+      state.selectedFilter = action.payload.filter;
+    },
+    setFilteredTickets: (state, action: PayloadAction<ITicket[]>) => {
+      state.filteredTickets = action.payload;
+    },
+  },
+});
 
 export const applyFilters = createAsyncThunk<
   ITicket[],
@@ -16,12 +33,7 @@ export const applyFilters = createAsyncThunk<
   } = getState().checkboxes;
 
   const { selectedFilter } = getState().filters;
-  console.log(
-    zeroTransfersChecked,
-    oneTransferChecked,
-    twoTransfersChecked,
-    allTransfersChecked
-  );
+
   let mutableTickets = [...tickets];
 
   const transferCount = zeroTransfersChecked
@@ -34,9 +46,9 @@ export const applyFilters = createAsyncThunk<
 
   if (!allTransfersChecked) {
     mutableTickets = mutableTickets.filter(
-      (t) =>
-        t.segments[0].stops.length === transferCount ||
-        t.segments[1].stops.length === transferCount
+      (tickets) =>
+        tickets.segments[0].stops.length === transferCount ||
+        tickets.segments[1].stops.length === transferCount
     );
   }
 
@@ -61,33 +73,15 @@ export const applyFilters = createAsyncThunk<
   return mutableTickets;
 });
 
-const initialState: IFiltersSliceState = {
-  selectedFilter: "cheapest",
-  filteredTickets: [],
-};
-
-const filtersSlice = createSlice({
-  name: "filters",
-  initialState,
-  reducers: {
-    setFilter: (state, action: PayloadAction<{ filter: string }>) => {
-      state.selectedFilter = action.payload.filter;
-    },
-    setFilteredTickets: (state, action: PayloadAction<ITicket[]>) => {
-      state.filteredTickets = action.payload;
-    },
-  },
-});
-
 export const { setFilter, setFilteredTickets } = filtersSlice.actions;
+
+// export const getSelectedFilter = (state: RootState) =>
+//   state.filters.selectedFilter;
+// export const getFilteredTickets = (state: RootState) =>
+//   state.filters.filteredTickets;
+// export const selectFilteredTickets = createSelector(
+//   [getFilteredTickets],
+//   (filteredTickets) => filteredTickets
+// );
+
 export default filtersSlice.reducer;
-
-export const getSelectedFilter = (state: RootState) =>
-  state.filters.selectedFilter;
-export const getFilteredTickets = (state: RootState) =>
-  state.filters.filteredTickets;
-
-export const selectFilteredTickets = createSelector(
-  [getFilteredTickets],
-  (filteredTickets) => filteredTickets
-);

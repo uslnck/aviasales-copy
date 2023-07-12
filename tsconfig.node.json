@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    // "baseUrl": "src",
+    // "rootDir": ".",
     "composite": true,
     "skipLibCheck": true,
     "module": "ESNext",

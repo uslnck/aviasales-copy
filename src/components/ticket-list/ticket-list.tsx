@@ -1,27 +1,23 @@
 import Ticket from "../ticket";
 import NoTicketsFound from "../no-tickets-found";
 import "./ticket-list.scss";
-import { useDispatch, useSelector } from "react-redux";
-import store, {
+import { useSelector } from "react-redux";
+import {
   RootState,
   useGetSearchIdQuery,
   useGetTicketsQuery,
+  useAppDispatch,
 } from "../../store";
 import { Spin } from "antd";
-import { useEffect, useMemo } from "react";
-import { ITicket } from "../../types";
+import { useEffect } from "react";
 import { applyFilters } from "../../store/filters-slice";
 
-export type AppDispatch = typeof store.dispatch;
-
-export const useAppDispatch = () => useDispatch<AppDispatch>();
-
 function TicketList() {
-  const { displayCount } = useSelector((state: RootState) => state.tickets);
   const dispatch = useAppDispatch();
 
+  const { displayCount } = useSelector((state: RootState) => state.tickets);
+
   const {
-    allTransfersChecked,
     zeroTransfersChecked,
     oneTransferChecked,
     twoTransfersChecked,
@@ -48,15 +44,16 @@ function TicketList() {
     zeroTransfersChecked,
     oneTransferChecked,
     twoTransfersChecked,
-    allTransfersChecked,
+    threeTransfersChecked,
     selectedFilter,
   ]);
 
-  const { filteredTickets } = useSelector((store: RootState) => store.filters);
-
   useEffect(() => {
+    console.log(ticketsObject);
     if (!stop) refetch();
   }, [refetch, stop, ticketsObject]);
+
+  const { filteredTickets } = useSelector((store: RootState) => store.filters);
 
   if (isLoading) return <Spin size="large" />;
 
